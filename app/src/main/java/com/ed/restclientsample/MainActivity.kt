@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -22,19 +23,46 @@ import com.ed.restclientsample.ui.theme.RestClientSampleTheme
 import com.ed.restclientsample.viewmodels.HumanResourcesVM
 
 class MainActivity : ComponentActivity() {
+    private val viewModel: HumanResourcesVM = HumanResourcesVM(ServiceRepository())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        var vm: HumanResourcesVM = HumanResourcesVM(ServiceRepository())
-        vm.loadEmployees()
         setContent {
             RestClientSampleTheme {
-                val employeeList = vm.department.value ?: emptyList()
-                EmployeesDisplay(employeeList)
-                Log.e("HumanResourcesVM", "Employees loaded  ${employeeList}")
-
+                EmployeeListScreen(viewModel)
             }
         }
+    }
+}
+
+@Composable
+fun EmployeeListScreen(viewModel: HumanResourcesVM) {
+    val employeeList = viewModel.department.value
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Employee List",
+            style = TextStyle(fontWeight = FontWeight.Bold),
+            fontSize = 20.sp,
+            modifier = Modifier.padding(8.dp)
+        )
+        if (employeeList.isNotEmpty()) {
+            LazyColumn {
+                items(employeeList) { employee ->
+                    EmployeeDisplay(employee)
+                }
+            }
+        } else {
+            Text(text = "Loading employees...")
+        }
+    }
+
+    LaunchedEffect(key1 = viewModel) {
+        viewModel.loadEmployees()
     }
 }
 
